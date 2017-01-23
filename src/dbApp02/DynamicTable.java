@@ -3,7 +3,6 @@ package dbApp02;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -14,12 +13,9 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -35,42 +31,24 @@ public class DynamicTable extends JFrame implements ActionListener {
 	private ArrayList<JLabel> jLabels = new ArrayList<>();
 	private ArrayList<JTextField> jTextFields = new ArrayList<>();
 	private JPanel panelChoose, panelltb, panelTable;
-	private int logCounter = 0;
 	private Connecty connecty;
 	private JButton btnAuthor, btnBooks, btnCustomer, btnItem, btnRentals;
 	private String currentTable = "";
 	private JTextField txFind;
 
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					DynamicTable frame = new DynamicTable();
-					frame.setVisible(true);
-					frame.letsLog();
-
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
 	 * Create the frame.
 	 */
 	public DynamicTable() {
+
+		connecty = Logger.getConnecty();
 		getContentPane().setBackground(new Color(0, 102, 102));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(900, 500);
 		getContentPane().setLayout(new FlowLayout());
-
-	}
-
-	private void initialize() {
+		panelChoose = new JPanel();
+		this.getContentPane().add(panelChoose, BorderLayout.LINE_START);
+		panelChoose.setLayout(new BorderLayout(0, 0));
 
 		panelChoose = new JPanel();
 		this.getContentPane().add(panelChoose, BorderLayout.NORTH);
@@ -102,20 +80,23 @@ public class DynamicTable extends JFrame implements ActionListener {
 		panelChoose.add(btnRentals, BorderLayout.CENTER);
 
 		panelltb = new JPanel();
-		this.getContentPane().add(panelltb);
+		this.getContentPane().add(panelltb, BorderLayout.CENTER);
 		panelltb.setLayout(new GridBagLayout());
 		panelltb.setBackground(new Color(0, 102, 102));
 
 		panelTable = new JPanel();
-		this.getContentPane().add(panelTable);
+		this.getContentPane().add(panelTable, BorderLayout.CENTER);
 		panelTable.setLayout(new GridBagLayout());
 		Connecty.descTables("author");
+
+		setVisible(true);
 	}
 
 	public void createComponents(int colname) {
 		panelltb.removeAll();
 		jTextFields.removeAll(jTextFields);
 		buttons.removeAll(buttons);
+
 		ArrayList<String> colnames = TableData.getColNames();
 		System.out.println("createComponents");
 		GridBagConstraints constraints = new GridBagConstraints();
@@ -140,6 +121,7 @@ public class DynamicTable extends JFrame implements ActionListener {
 		constraints.gridx = 3;
 		constraints.gridy = 0;
 		JButton insert = new JButton("Insert");
+		insert.setPreferredSize(new Dimension(80, 25));
 		insert.addActionListener(this);
 		insert.setActionCommand("insert");
 		panelltb.add(insert, constraints);
@@ -150,10 +132,7 @@ public class DynamicTable extends JFrame implements ActionListener {
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(this);
 		btnUpdate.setActionCommand("update");
-		if (currentTable.equals("rentals")) {
-			btnUpdate.setName("return");
-			btnUpdate.setActionCommand("return");
-		}
+		btnUpdate.setPreferredSize(new Dimension(80, 25));
 		panelltb.add(btnUpdate, constraints);
 		buttons.add(btnUpdate);
 
@@ -165,11 +144,12 @@ public class DynamicTable extends JFrame implements ActionListener {
 		constraints.gridx = 3;
 		constraints.gridy = 2;
 		JButton find = new JButton("Find");
+		find.setPreferredSize(new Dimension(80, 25));
 		find.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				findRecord();
+				findRecords();
 
 			}
 		});
@@ -191,15 +171,9 @@ public class DynamicTable extends JFrame implements ActionListener {
 		} else if (e.getSource().equals(btnRentals)) {
 			currentTable = "rentals";
 		} else if (e.getActionCommand().equals("insert")) {
-			if (currentTable.equals("rentals")) {
-				modifyRentals("insert");
-			} else {
-				insert(currentTable);
-			}
+			insert(currentTable);
 		} else if (e.getActionCommand().equals("update")) {
 			update(currentTable);
-		} else if (e.getActionCommand().equals("return")) {
-			modifyRentals("return");
 		}
 		Connecty.descTables(currentTable);
 		connecty.selectDatafrom(currentTable);
@@ -208,49 +182,7 @@ public class DynamicTable extends JFrame implements ActionListener {
 
 	}
 
-	private void modifyRentals(String type) {
-		String itemId = "", sql = "";
-		if (type.equals("insert")) {
-
-			String customerName = "", customerSurname = "", customerId = "";
-
-			for (int i = 0; i < TableData.noOfCol(); i++) {
-				if (TableData.getColNames().get(i).equalsIgnoreCase("item_id")) {
-					itemId = jTextFields.get(i).getText();
-				} else if (TableData.getColNames().get(i).equalsIgnoreCase("customer_name")) {
-					customerName = jTextFields.get(i).getText();
-				} else if (TableData.getColNames().get(i).equalsIgnoreCase("customer_surname")) {
-					customerSurname = jTextFields.get(i).getText();
-				}
-			}
-			customerId = findCustomerId(customerName, customerSurname);
-			sql = "insert into rental_b ( item_id,customer_id) values( " + itemId + " , " + customerId + " ) ";
-		} else if (type.equals("return")) {
-			sql = "update  rental_b  set return_date = '" + jTextFields.get(3).getText()
-					+ "' where rental_id = " + jTextFields.get(0).getText();
-		}
-		System.out.println(sql);
-		Connecty.setData(sql);
-		
-	}
-
-	private String findCustomerId(String customerName, String customerSurname) {
-		String customerId = "";
-		Connecty.descTables("customer");
-		connecty.selectDatafrom("customer");
-		for (int i = 0; i < TableData.getRecords().length; i++) {
-
-			String tempName = TableData.getRecords()[i][1];
-			String tempSurname = TableData.getRecords()[i][2];
-			if (tempName != null && tempSurname != null && tempName.equalsIgnoreCase(customerName)
-					&& tempSurname.equalsIgnoreCase(customerSurname)) {
-				customerId = TableData.getRecords()[i][0];
-			}
-		}
-		return customerId;
-	}
-
-	private void findRecord() {
+	private void findRecords() {
 		String[][] recordsToDisplay = new String[100][TableData.noOfCol()];
 		int counter = 0;
 		for (int i = 0; i < TableData.getRecords().length; i++) {
@@ -377,28 +309,4 @@ public class DynamicTable extends JFrame implements ActionListener {
 
 	}
 
-	public void letsLog() {
-
-		JLabel title = new JLabel("Login Username and Password");
-		JTextField username = new JTextField("root");
-		JPasswordField password = new JPasswordField("root");
-		final JComponent[] inputs = new JComponent[] { title, new JLabel("Username"), username, new JLabel("Password"),
-				password };
-
-		JOptionPane.showMessageDialog(null, inputs, "Login", JOptionPane.PLAIN_MESSAGE);
-
-		String user = username.getText();
-		String userPassword = new String(password.getPassword());
-
-		connecty = new Connecty(user, userPassword);
-		if (!connecty.isIn() && logCounter < 5) {
-			logCounter++;
-			letsLog();
-		} else if (logCounter > 4) {
-			System.exit(0);
-		} else if (connecty.isIn()) {
-			System.out.println("run initialize");
-			initialize();
-		}
-	}
 }

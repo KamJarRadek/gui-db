@@ -21,9 +21,9 @@ public class TableData {
 	public static String[] getTablesNames() {
 		return tablesNames;
 	}
-	public  TableData(ArrayList<String> colNames, ArrayList<String> colType){
-		this.colNames = colNames;
-		this.colTypes = colType;
+	public  TableData(ArrayList<String> colName, ArrayList<String> colType){
+		colNames = colName;
+		colTypes = colType;
 	}
 	public static ArrayList<String> getColNames() {
 		return colNames;

@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -14,6 +15,7 @@ public class Connecty {
 	private static final String dataBaseName = "library";
 	private static String userName = "";
 	private static String userPassword = "";
+//	private static String answer = "";
 	private static boolean in = false;
 	private static Connection con = null;
 
@@ -84,6 +86,7 @@ public class Connecty {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+			System.out.println("No connection");
 		}
 		TableData tableData = new TableData(colNames, colTypes);
 	}
